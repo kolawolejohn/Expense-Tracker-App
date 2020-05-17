@@ -5,11 +5,11 @@ class User
     private $monthlyIncome;
     private $minimumPercentageToSave;
     private $minimumAmountToSave;
-    private $totalPersonalAmountSpent = 0;
-    private $totalBeneficiaryAmountSpent = 0;
+    private $totalPersonalAmountSpent= 0;
+    private $totalBeneficiaryAmountGiven=0;
     private $percentageOfIncomeSpent;
     private $percentageOfIncomeGiven;
-    private $totalPersonalExpensePercent = 0;
+    private $totalPersonalExpensePercent = 0 ;
     private $totalBeneficiaryExpensePercent = 0;
     private $beneficiaryList = [];
     private $expenseList = [];
@@ -91,24 +91,25 @@ class User
         $this->expense->title =  readline("Enter the title of your expense: ");
         $this->expense->benefactor = readline("Enter where the expense was made: ");
         $this->expense->amountSpent = intval(readline("Enter amount of income spent: "));
-        $oldTotalPersonalExpensePercent = $this->getTotalPersonalExpensePercent();
-        if(($this->showPercentAmountSpent() < $this->getMinimumPercentageToSave())){
-            $this->percentageOfIncomeSpent = ($this->expense->amountSpent * 100)/($this->monthlyIncome);
+        $this->percentageOfIncomeSpent = ($this->expense->amountSpent * 100)/($this->getMonthlyIncome());
+        $this->totalPersonalAmountSpent += $this->expense->amountSpent;
+        if($this->getTotalAmountSpent() < $this->getMinimumAmountToSave()){
             $this->totalPersonalExpensePercent += $this->percentageOfIncomeSpent;
             $this->expenseList[] = $this->getExpense();
             print_r($this->expenseList);
+            $this->showPercentAmountSpent();
             echo 'New expense created successfully' . PHP_EOL;
             if(!array_key_exists($this->expense->expenseCategory, $this->expenseGroupList)){
                 $this->expenseGroupList[] = $this->expense->expenseCategory;
             }
         }
-        else{
-            echo "\n\e[0;32mYou have exceeded savings Limit!!!\e[0m" .PHP_EOL;
-             $this->totalPersonalExpensePercent = ($oldTotalPersonalExpensePercent - $this->percentageOfIncomeSpent + $this->percentageOfIncomeSpent);
-             unset($oldTotalPersonalExpensePercent);
+        else if($this->getTotalAmountSpent() > $this->getMinimumAmountToSave()){
+             echo "\n\e[0;32mYou have exceeded savings Limit!!!\e[0m" .PHP_EOL;
+             $this->$totalPersonalExpensePercent -= $this->percentageOfIncomeSpent;
              $delete[] = $this->getExpense();
              unset($delete);
-             echo 'This expense was not created as you exceeded the savings Limit!!!' . PHP_EOL;
+             $this->showPercentAmountSpent();
+             echo 'This expense is not created as you have exceeded the savings limit!!!'. PHP_EOL;
         }
     }
 
@@ -127,20 +128,20 @@ class User
     public function updateExpense(){
         $expenseIndex= readline("Please enter index of expense category to update: ");
         $expenseCategory = readline("Please enter category to update: ");
-        $oldPersonalExpensePercentSpent = $this->getTotalPersonalExpensePercent();
+        $oldPercentSpent = $this->getTotalPersonalExpensePercent();
         if (array_key_exists($expenseIndex, $this->expenseList))
         {
             $expenseToUpdate = $this->expenseList[$expenseIndex];
             $getPercent = $expenseToUpdate[$expenseCategory]['Percent'];
             if(array_key_exists($expenseIndex, $this->expenseList)){
-                $this->totalPersonalExpensePercent = ($oldPersonalExpensePercentSpent -  $getPercent);
-                unset($oldPercentSpent);
+                $this->totalPersonalExpensePercent = ($oldPercentSpent -  $getPercent);
                 $this->expense->expenseCategory= readline("Enter expense category: ");
                 $this->expense->title =  readline("Enter the title of your expense: ");
                 $this->expense->benefactor = readline("Enter where the expense was made: ");
                 $this->expense->amountSpent = intval(readline("Enter amount of income spent: "));
-                if($this->showPercentAmountSpent() < $this->getMinimumPercentageToSave()){
-                    $this->percentageOfIncomeSpent = ($this->expense->amountSpent * 100)/($this->monthlyIncome);
+                $this->percentageOfIncomeSpent = ($this->expense->amountSpent * 100)/($this->getMonthlyIncome());
+                $this->totalPersonalAmountSpent += $this->expense->amountSpent;
+                if($this->getTotalAmountSpent() < $this->getMinimumAmountToSave()){
                     $this->totalPersonalExpensePercent += $this->percentageOfIncomeSpent;
                     $newExpenseUpdate = $this->getExpense();
                     $expenseToUpdate = $newExpenseUpdate;
@@ -152,22 +153,19 @@ class User
                     if(!array_key_exists($this->expense->expenseCategory, $this->expenseGroupList)){
                         $this->expenseGroupList[] = $this->expense->expenseCategory;
                     }
-                    var_dump($this->showPercentAmountSpent());
-                    var_dump($this->getMinimumPercentageToSave());
-                }
+                    $this->showPercentAmountSpent();
                 }
                 else{
                     echo "\n\e[0;32mYou have exceeded savings Limit!!!\e[0m" .PHP_EOL;
-                    $this->totalPersonalExpensePercent = ($oldTotalPersonalExpensePercent - $this->percentageOfIncomeSpent + $this->percentageOfIncomeSpent);
-                    unset($oldTotalPersonalExpensePercent);
+                    $this->$totalPersonalExpensePercent -= $this->percentageOfIncomeSpent;
                     $delete[] = $this->getExpense();
                     unset($delete);
-                    echo 'This expense was not updated as you exceeded the savings Limit!!!' . PHP_EOL;
+                    $this->showPercentAmountSpent();
+                    echo 'This expense is not updated as you have exceeded the savings limit!!!'. PHP_EOL;
                 }
 
             }
         }
-         
     }
 
     public function deleteExpense(){
@@ -180,11 +178,11 @@ class User
             $expenseToDelete = $this->expenseList[$expenseIndex];
             $getPercent = $expenseToDelete[$expenseCategory]['Percent'];
             $this->totalPersonalExpensePercent = ($oldPercentSpent -  $getPercent);
-            unset($oldPercentSpent);
             unset($this->expenseList[$expenseIndex]);
             $this->expenseList = array_values($this->expenseList);
             print_r($this->expenseList);
             echo 'Expense Deleted Successfully'. PHP_EOL;
+            $this->showPercentAmountSpent();
         }
         else
         {
@@ -194,6 +192,7 @@ class User
 
     public function showAllExpenses(){
         print_r($this->expenseList);
+        $this->showPercentAmountSpent();
     }
 
     public function createBeneficiary(){
@@ -201,18 +200,19 @@ class User
         $this->beneficiary->relationship = readline("Enter relationship with beneficiary: ");
         $this->beneficiary->amountGiven = intval(readline("Enter amount given to beneficiary: "));
         $this->percentageOfIncomeGiven = ($this->beneficiary->amountGiven * 100)/($this->getMonthlyIncome());
-        if($this->showPercentAmountSpent() < $this->getMinimumPercentageToSave()){
+        $this->totalBeneficiaryAmountGiven +=$this->beneficiary->amountGiven;
+        if($this->getTotalAmountSpent() < $this->getMinimumAmountToSave()){
             $this->totalBeneficiaryExpensePercent +=  $this->percentageOfIncomeGiven;
             $this->beneficiaryList[] = $this->getBeneficiary();
             print_r($this->beneficiaryList); 
+            $this->showPercentAmountSpent();
         }
         else{
             echo "\n\e[0;32mYou have exceeded savings Limit!!!\e[0m" .PHP_EOL;
-            $oldTotalBeneficiaryExpensePercent = $this->getTotalBeneficiaryExpensePercent();
-            $this->totalBeneficiaryExpensePercent = ($oldTotalBeneficiaryExpensePercent - $this->percentageOfIncomeGiven + $this->percentageOfIncomeGiven);
-            unset($oldTotalBeneficiaryPercent);
+            $this->totalBeneficiaryExpensePercent -= $this->percentageOfIncomeGiven;
             $delete[] = $this->getBeneficiary();
             unset($delete);
+            $this->showPercentAmountSpent();
         }
     }
 
@@ -234,11 +234,11 @@ class User
             $beneficiaryToDelete = $this->beneficiaryList[$nameIndex];
             $getPercent = $beneficiaryToDelete['Percent'];
             $this->totalBeneficiaryExpensePercent = ($oldPercentGiven -  $getPercent);
-            unset($oldPercentGiven);
             unset($this->beneficiaryList[$nameIndex]);
             $this->beneficiaryList = array_values($this->beneficiaryList);
             print_r($this->beneficiaryList);
             echo 'Beneficiary Deleted Successfully'. PHP_EOL;
+            $this->showPercentAmountSpent();
         }
         {
            return 'This beneficiary does not exist...';
@@ -257,6 +257,10 @@ class User
         return $this->totalBeneficiaryExpensePercent;
     }
 
+    public function getTotalPercentSpent(){
+        return $this->getTotalPersonalExpensePercent() + $this->getTotalBeneficiaryExpensePercent();
+    }
+
     public function getToTalPersonalExpense(){
         return $this->totalPersonalAmountSpent;
     }
@@ -266,21 +270,17 @@ class User
     }
 
     public function getTotalAmountSpent(){
-        return $this->totalPersonalAmountSpent + $this->totalBeneficiaryAmountSpent;
+        return $this->getToTalPersonalExpense() + $this->getToTalBeneficiaryExpense();
     }
 
     public function showPercentAmountSpent(){
-        $totalPersonalExpensePercent = $this->getTotalPersonalExpensePercent();
-        $totalBeneficiaryExpensePercent = $this->getTotalBeneficiaryExpensePercent();
-        $result = $totalPersonalExpensePercent + $totalBeneficiaryExpensePercent;
+        $result = $this->getTotalPercentSpent();
         echo "\n\e[0;32mTotal Percentage of Income spent is: \e[0m" . $result. '%' .PHP_EOL;
-        return $result;
     }
 
     public function showPercentAmountSaved(){
-        $percentSaved = (100 - $this->showPercentAmountSpent());
+        $percentSaved = (100 - $this->getTotalPercentSpent());
         echo "\n\e[0;32mTotal Percentage of Income saved is: \e[0m" . $percentSaved . '%' . PHP_EOL;
-        return $percentSaved;
     }
 
 }
