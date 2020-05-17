@@ -56,7 +56,7 @@ class User
         $expenseCategory = readline("Please enter expense category to update: ");
         if (($key = array_search($expenseCategory, $this->expenseGroupList)) !== false) {
             unset($this->expenseGroupList[$key]);
-            $this->expenseGroupList = array_values($this->expenseGroupLis);
+            $this->expenseGroupList = array_values($this->expenseGroupList);
         }
         $expenseGroupToUpdate = readline("Enter new category: ");
         $this->expenseGroupList[] = $expenseGroupToUpdate;
@@ -77,7 +77,7 @@ class User
         $expenseCategory = readline("Please enter expense category to remove: ");
         if (($key = array_search($expenseCategory, $this->expenseGroupList)) !== false) {
             unset($this->expenseGroupList[$key]);
-            $this->expenseGroupList = array_values($this->expenseGroupLis);
+            $this->expenseGroupList = array_values($this->expenseGroupList);
             return 'Expense group Deleted Successfully' .PHP_EOL;
         }
         else
