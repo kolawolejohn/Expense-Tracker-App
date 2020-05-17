@@ -46,36 +46,51 @@ class User
 
     public function createExpenseGroup(){
         $newExpenseCategory = readline("Enter new category: ");
-        $this->expenseGroupList[] = $newExpenseCategory;
-        print_r(array_unique($this->expenseGroupList));
-        return 'Expense group created successfully' . PHP_EOL;
+        if(!empty($newExpenseCategory)){
+            $this->expenseGroupList[] = $newExpenseCategory;
+            print_r(array_unique($this->expenseGroupList));
+            return 'Expense group created successfully' . PHP_EOL;
+        }
+        else{
+            echo "Please specify expense group to create" .PHP_EOL;
+            $this->createExpenseGroup();
+        }
     }
 
     public function updateExpenseGroup(){
         echo "\n\e[0;32mPlease choose the expense group by the name of the expense group\e[0m\n";
-        $expenseCategory = readline("Please enter expense category to update: ");
-        if (($key = array_search($expenseCategory, $this->expenseGroupList)) !== false) {
+        $expenseGroupToUpdate = readline("Please enter expense category to update: ");
+        $updatedExpenseGroup = readline("Enter new category: ");
+        if ((($key = array_search($expenseGroupToUpdate , $this->expenseGroupList)) !== false) &&  !empty($expenseGroupToUpdate)  && !empty($updatedExpenseGroup)) {
             unset($this->expenseGroupList[$key]);
             $this->expenseGroupList = array_values($this->expenseGroupList);
+            $expenseGroupToUpdate = $updatedExpenseGroup;
+            $this->expenseGroupList[] = $expenseGroupToUpdate;
+            print_r(array_unique($this->expenseGroupList));
+            return 'Expense group updated successfully' . PHP_EOL;
         }
-        $expenseGroupToUpdate = readline("Enter new category: ");
-        $this->expenseGroupList[] = $expenseGroupToUpdate;
-        print_r(array_unique($this->expenseGroupList));
-        return 'Expense group updated successfully' . PHP_EOL;
-
+        else{
+            echo "Please specify expense group to update" .PHP_EOL;
+            $this->updateExpenseGroup();
+        }
     }
 
     public function showExpenseGroup(){
         $groupList = $this->expenseGroupList;
-        foreach(array_unique($groupList) as $key => $expenseGroup){
-           print_r($expenseGroup . PHP_EOL);
+        if(!empty($groupList)){
+            foreach(array_unique($groupList) as $key => $expenseGroup){
+                print_r($expenseGroup . PHP_EOL);
+             }
+        }
+        else{
+            return "There is now expensegroup list to show" . PHP_EOL;
         }
     }
 
     public function deleteExpenseGroup(){
         echo "\n\e[0;32mPlease delete the expense group by the name of the expense group\e[0m\n";
         $expenseCategory = readline("Please enter expense category to remove: ");
-        if (($key = array_search($expenseCategory, $this->expenseGroupList)) !== false) {
+        if (($key = array_search($expenseCategory, $this->expenseGroupList)) !== false && !empty($expenseCategory)) {
             unset($this->expenseGroupList[$key]);
             $this->expenseGroupList = array_values($this->expenseGroupList);
             return 'Expense group Deleted Successfully' .PHP_EOL;
