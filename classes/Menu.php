@@ -31,49 +31,49 @@ class Menu {
         switch ($option)
         {
         case 1:
-            echo $this->user->createExpenseGroup();
+            print $this->user->createExpenseGroup();
             break;
         case 2:
-            echo $this->user->updateExpenseGroup();
+            print $this->user->updateExpenseGroup();
             break;
         case 3:
-            echo $this->user->showExpenseGroup();
+            print $this->user->showExpenseGroup();
             break;
         case 4:
-            echo $this->user->deleteExpenseGroup();
+            print $this->user->deleteExpenseGroup();
             break;
         case 5:
-            echo $this->user->createExpense();
+            print $this->user->createExpense();
             break;
         case 6:
-            echo $this->user->updateExpense();
+            print $this->user->updateExpense();
             break;
         case 7:
-            echo $this->user->deleteExpense();
+            print $this->user->deleteExpense();
             break;
         case 8:
-            $this->user->showAllExpenses();
+            print $this->user->showAllExpenses();
             break;
         case 9:
-            echo $this->user->createBeneficiary();
+            print $this->user->createBeneficiary();
             break;
         case 10:
-            echo $this->user->removeBeneficiary();
+            print $this->user->removeBeneficiary();
             break;
         case 11:
             echo $this->user->showBeneficiaries();
             break;
         case 12:
-            echo $this->user->showPercentAmountSpent();
+            print $this->user->showPercentAmountSpent();
             break;
         case 13:
-            echo $this->user->showPercentAmountSaved();
+            print $this->user->showPercentAmountSaved();
             break;
         case 14:
             $this->quit();
             break;
         default:
-            echo ("Input not understood, Please retry again...");
+            print ("Input not understood, Please retry again...");
             break;
         }
     }
