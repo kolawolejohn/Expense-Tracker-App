@@ -52,29 +52,25 @@ class User
             array_unique($this->expenseGroupList);
             print 'Expense group created successfully' . PHP_EOL;
         }
-        else{
-            print("Please specify expense group to create" .PHP_EOL);
-            $this->createExpenseGroup();
-        }
     }
 
     public function updateExpenseGroup(){
         echo "\n\e[0;32mPlease choose the expense group by the name of the expense group\e[0m\n";
-        $expenseGroupToUpdate = readline("Please enter expense category to update: ");
-        $updatedExpenseGroup = readline("Enter new category: ");
-        if ((($key = array_search($expenseGroupToUpdate , $this->expenseGroupList)) !== false) &&  !empty($expenseGroupToUpdate)  && !empty($updatedExpenseGroup)) {
+        $expenseCategory = readline("Please enter expense category to update: ");
+        if (($key = array_search($expenseCategory, $this->expenseGroupList)) !== false) {
             unset($this->expenseGroupList[$key]);
             $this->expenseGroupList = array_values($this->expenseGroupList);
-            $expenseGroupToUpdate = $updatedExpenseGroup;
+            $expenseGroupToUpdate = readline("Enter new category: ");
             $this->expenseGroupList[] = $expenseGroupToUpdate;
-            array_unique($this->expenseGroupList);
+            print_r(array_unique($this->expenseGroupList));
             return 'Expense group updated successfully' . PHP_EOL;
         }
         else{
-            print("Please specify expense group to update" .PHP_EOL);
+            print("The category you entered does not exist, please specify an exisiting expense group to update" .PHP_EOL);
             $this->updateExpenseGroup();
         }
     }
+
 
     public function showExpenseGroup(){
         $groupList = $this->expenseGroupList;
