@@ -1,5 +1,6 @@
 <?php
 require_once "require/readline.php";
+
 class User
 {
     private $monthlyIncome;
@@ -48,38 +49,34 @@ class User
         $newExpenseCategory = readline("Enter new category: ");
         if(!empty($newExpenseCategory)){
             $this->expenseGroupList[] = $newExpenseCategory;
-            print_r(array_unique($this->expenseGroupList));
-            return 'Expense group created successfully' . PHP_EOL;
-        }
-        else{
-            echo "Please specify expense group to create" .PHP_EOL;
-            $this->createExpenseGroup();
+            array_unique($this->expenseGroupList);
+            print 'Expense group created successfully' . PHP_EOL;
         }
     }
 
     public function updateExpenseGroup(){
         echo "\n\e[0;32mPlease choose the expense group by the name of the expense group\e[0m\n";
-        $expenseGroupToUpdate = readline("Please enter expense category to update: ");
-        $updatedExpenseGroup = readline("Enter new category: ");
-        if ((($key = array_search($expenseGroupToUpdate , $this->expenseGroupList)) !== false) &&  !empty($expenseGroupToUpdate)  && !empty($updatedExpenseGroup)) {
+        $expenseCategory = readline("Please enter expense category to update: ");
+        if (($key = array_search($expenseCategory, $this->expenseGroupList)) !== false) {
             unset($this->expenseGroupList[$key]);
             $this->expenseGroupList = array_values($this->expenseGroupList);
-            $expenseGroupToUpdate = $updatedExpenseGroup;
+            $expenseGroupToUpdate = readline("Enter new category: ");
             $this->expenseGroupList[] = $expenseGroupToUpdate;
             print_r(array_unique($this->expenseGroupList));
             return 'Expense group updated successfully' . PHP_EOL;
         }
         else{
-            echo "Please specify expense group to update" .PHP_EOL;
+            print("The category you entered does not exist, please specify an exisiting expense group to update" .PHP_EOL);
             $this->updateExpenseGroup();
         }
     }
+
 
     public function showExpenseGroup(){
         $groupList = $this->expenseGroupList;
         if(!empty($groupList)){
             foreach(array_unique($groupList) as $key => $expenseGroup){
-                print_r($expenseGroup . PHP_EOL);
+                print $expenseGroup . PHP_EOL;
              }
         }
         else{
@@ -88,7 +85,7 @@ class User
     }
 
     public function deleteExpenseGroup(){
-        echo "\n\e[0;32mPlease delete the expense group by the name of the expense group\e[0m\n";
+       print("\n\e[0;32mPlease delete the expense group by the name of the expense group\e[0m\n");
         $expenseCategory = readline("Please enter expense category to remove: ");
         if (($key = array_search($expenseCategory, $this->expenseGroupList)) !== false && !empty($expenseCategory)) {
             unset($this->expenseGroupList[$key]);
@@ -102,39 +99,48 @@ class User
     }
 
     public function createExpense(){
-        $this->expense->expenseCategory= readline("Enter expense category: ");
-        $this->expense->title =  readline("Enter the title of your expense: ");
-        $this->expense->benefactor = readline("Enter where the expense was made: ");
-        $this->expense->amountSpent = intval(readline("Enter amount of income spent: "));
-        $this->percentageOfIncomeSpent = ($this->expense->amountSpent * 100)/($this->getMonthlyIncome());
-        $this->totalPersonalAmountSpent += $this->expense->amountSpent;
+        $this->expense->setExpenseCategory($expenseCategory);
+        $this->expense->setTitle($title);
+        $this->expense->setBenefactor($benefactor);
+        $expenseAmount = $this->expense->getAmountSpent();
+        $expenseAmount = intval(readline("Enter amount of income spent: "));
+        $this->percentageOfIncomeSpent = ($expenseAmount  * 100)/($this->getMonthlyIncome());
+        $this->totalPersonalAmountSpent += $expenseAmount ;
         if($this->getTotalAmountSpent() < $this->getMinimumAmountToSave()){
             $this->totalPersonalExpensePercent += $this->percentageOfIncomeSpent;
             $this->expenseList[] = $this->getExpense();
-            print_r($this->expenseList);
+            $array[] = $this->getExpense();
+            foreach($array as $key => $expenseGroup){
+                foreach($expenseGroup as $key => $expense){
+                    foreach($expense as $key => $value){
+                        print  $key . ': '. $value . PHP_EOL;
+                    }
+                }
+                print "\n\e[1;33m============================================\e[0m\n";
+            }
             $this->showPercentAmountSpent();
-            echo 'New expense created successfully' . PHP_EOL;
-            if(!array_key_exists($this->expense->expenseCategory, $this->expenseGroupList)){
-                $this->expenseGroupList[] = $this->expense->expenseCategory;
+            print('New expense created successfully' . PHP_EOL);
+            if(!array_key_exists($expenseCategory, $this->expenseGroupList)){
+                $this->expenseGroupList[] = $this->expense->getExpenseCategory();
             }
         }
         else if($this->getTotalAmountSpent() > $this->getMinimumAmountToSave()){
-             echo "\n\e[0;32mYou have exceeded savings Limit!!!\e[0m" .PHP_EOL;
+             print("\n\e[0;32mYou have exceeded savings Limit!!!\e[0m" .PHP_EOL);
              $this->$totalPersonalExpensePercent -= $this->percentageOfIncomeSpent;
              $delete[] = $this->getExpense();
              unset($delete);
              $this->showPercentAmountSpent();
-             echo 'This expense is not created as you have exceeded the savings limit!!!'. PHP_EOL;
+             print('This expense is not created as you have exceeded the savings limit!!!'. PHP_EOL);
         }
     }
 
     public function getExpense(){
             return 
             [
-                $this->expense->expenseCategory =>
+                $this->expense->getExpenseCategory() =>
                     [
-                        'Title'     => $this->expense->title,
-                        'Benefactor'  => $this->expense->benefactor,
+                        'Title'     => $this->expense->getTitle(),
+                        'Benefactor'  => $this->expense->getBenefactor(),
                         'Percent'   => $this->percentageOfIncomeSpent
                     ]
             ];
@@ -150,12 +156,13 @@ class User
             $getPercent = $expenseToUpdate[$expenseCategory]['Percent'];
             if(array_key_exists($expenseIndex, $this->expenseList)){
                 $this->totalPersonalExpensePercent = ($oldPercentSpent -  $getPercent);
-                $this->expense->expenseCategory= readline("Enter expense category: ");
-                $this->expense->title =  readline("Enter the title of your expense: ");
-                $this->expense->benefactor = readline("Enter where the expense was made: ");
-                $this->expense->amountSpent = intval(readline("Enter amount of income spent: "));
-                $this->percentageOfIncomeSpent = ($this->expense->amountSpent * 100)/($this->getMonthlyIncome());
-                $this->totalPersonalAmountSpent += $this->expense->amountSpent;
+                $this->expense->setExpenseCategory($expenseCategory);
+                $this->expense->setTitle($title);
+                $this->expense->setBenefactor($benefactor);
+                $expenseAmount = $this->expense->getAmountSpent();
+                $expenseAmount = intval(readline("Enter amount of income spent: "));
+                $this->percentageOfIncomeSpent = ($expenseAmount  * 100)/($this->getMonthlyIncome());
+                $this->totalPersonalAmountSpent += $expenseAmount ;
                 if($this->getTotalAmountSpent() < $this->getMinimumAmountToSave()){
                     $this->totalPersonalExpensePercent += $this->percentageOfIncomeSpent;
                     $newExpenseUpdate = $this->getExpense();
@@ -163,20 +170,28 @@ class User
                     $this->expenseList[] = $expenseToUpdate;
                     unset($this->expenseList[$expenseIndex]);
                     $this->expenseList = array_values($this->expenseList);
-                    print_r($this->expenseList);
-                    echo 'New expense created successfully' . PHP_EOL;
-                    if(!array_key_exists($this->expense->expenseCategory, $this->expenseGroupList)){
-                        $this->expenseGroupList[] = $this->expense->expenseCategory;
+                    $updatedExpense[] = $expenseToUpdate;
+                    foreach($updatedExpense as $key => $expenseGroup){
+                        foreach($expenseGroup as $key => $expense){
+                            foreach($expense as $key => $value){
+                                print  $key . ': '. $value . PHP_EOL;
+                            }
+                        }
+                        print "\n\e[1;33m============================================\e[0m\n";
+                    }
+                    print('New expense created successfully' . PHP_EOL);
+                    if(!array_key_exists($expenseCategory, $this->expenseGroupList)){
+                        $this->expenseGroupList[] = $this->expense->getExpenseCategory();
                     }
                     $this->showPercentAmountSpent();
                 }
                 else{
-                    echo "\n\e[0;32mYou have exceeded savings Limit!!!\e[0m" .PHP_EOL;
+                    print("\n\e[0;32mYou have exceeded savings Limit!!!\e[0m" .PHP_EOL);
                     $this->$totalPersonalExpensePercent -= $this->percentageOfIncomeSpent;
                     $delete[] = $this->getExpense();
                     unset($delete);
                     $this->showPercentAmountSpent();
-                    echo 'This expense is not updated as you have exceeded the savings limit!!!'. PHP_EOL;
+                    print('This expense is not updated as you have exceeded the savings limit!!!'. PHP_EOL);
                 }
 
             }
@@ -184,7 +199,7 @@ class User
     }
 
     public function deleteExpense(){
-        echo "\n\e[0;32mPlease delete the expense by the array Index, it must be a number\e[0m\n";
+        print("\n\e[0;32mPlease delete the expense by the array Index, it must be a number\e[0m\n");
         $expenseIndex= readline("Please enter index of expense category to remove: ");
         $expenseCategory = readline("Please enter category to delete: ");
         $oldPercentSpent = $this->getTotalPersonalExpensePercent();
@@ -195,8 +210,7 @@ class User
             $this->totalPersonalExpensePercent = ($oldPercentSpent -  $getPercent);
             unset($this->expenseList[$expenseIndex]);
             $this->expenseList = array_values($this->expenseList);
-            print_r($this->expenseList);
-            echo 'Expense Deleted Successfully'. PHP_EOL;
+            print('Expense Deleted Successfully'. PHP_EOL);
             $this->showPercentAmountSpent();
         }
         else
@@ -206,24 +220,41 @@ class User
     }
 
     public function showAllExpenses(){
-        print_r($this->expenseList);
+        $expenses = $this->expenseList;
+            foreach($expenses as $key => $expenseGroup){
+                print 'Index' . ':' . $key . PHP_EOL;
+                foreach($expenseGroup as $key => $expense){
+                    print  $key .PHP_EOL;
+                    foreach($expense as $key => $value){
+                        print  $key . ': '. $value . PHP_EOL;
+                    }
+                }
+                print "\n\e[1;33m============================================\e[0m\n";
+            }
         $this->showPercentAmountSpent();
     }
 
     public function createBeneficiary(){
-        $this->beneficiary->name = readline("Enter beneficiary name: ");
-        $this->beneficiary->relationship = readline("Enter relationship with beneficiary: ");
-        $this->beneficiary->amountGiven = intval(readline("Enter amount given to beneficiary: "));
-        $this->percentageOfIncomeGiven = ($this->beneficiary->amountGiven * 100)/($this->getMonthlyIncome());
-        $this->totalBeneficiaryAmountGiven +=$this->beneficiary->amountGiven;
+        $this->beneficiary->setName($name);
+        $this->beneficiary->setRelationship($relationship);
+        $amountGiven = $this->beneficiary->getAmountGiven();
+        $amountGiven = intval(readline("Enter amount given to beneficiary: "));
+        $this->percentageOfIncomeGiven = ($amountGiven * 100)/($this->getMonthlyIncome());
+        $this->totalBeneficiaryAmountGiven +=$amountGiven;
         if($this->getTotalAmountSpent() < $this->getMinimumAmountToSave()){
             $this->totalBeneficiaryExpensePercent +=  $this->percentageOfIncomeGiven;
             $this->beneficiaryList[] = $this->getBeneficiary();
-            print_r($this->beneficiaryList); 
+            $array[] = $this->getBeneficiary();
+            foreach($array as $key => $beneficiary){
+                foreach($beneficiary as $key => $value){
+                    print $key . ': '. $value  . PHP_EOL;
+                }
+                print "\n\e[1;33m============================================\e[0m\n";
+            }
             $this->showPercentAmountSpent();
         }
         else{
-            echo "\n\e[0;32mYou have exceeded savings Limit!!!\e[0m" .PHP_EOL;
+            print("\n\e[0;32mYou have exceeded savings Limit!!!\e[0m" .PHP_EOL);
             $this->totalBeneficiaryExpensePercent -= $this->percentageOfIncomeGiven;
             $delete[] = $this->getBeneficiary();
             unset($delete);
@@ -234,14 +265,14 @@ class User
     public function getBeneficiary(){
         return 
             [
-                'Name'     => $this->beneficiary->name,
-                'relationship'  => $thisbeneficiary->relationship,
+                'Name'     => $this->beneficiary->getName(),
+                'Relationship'  => $this->beneficiary->getRelationship(),
                 'Percent'   => $this->percentageOfIncomeGiven
             ];
     }
 
     public function removeBeneficiary(){
-        echo "\n\e[0;32mPlease delete the beneficiary by the array Index, it must be the desired index(number)\e[0m\n";
+        print("\n\e[0;32mPlease delete the beneficiary by the array Index, it must be the desired index(number)\e[0m\n");
         $nameIndex = readline("Please enter index of beneficiary to remove: ");
         $oldPercentGiven = $this->getTotalBeneficiaryExpensePercent();
         if (array_key_exists($nameIndex, $this->beneficiaryList))
@@ -251,8 +282,8 @@ class User
             $this->totalBeneficiaryExpensePercent = ($oldPercentGiven -  $getPercent);
             unset($this->beneficiaryList[$nameIndex]);
             $this->beneficiaryList = array_values($this->beneficiaryList);
-            print_r($this->beneficiaryList);
-            echo 'Beneficiary Deleted Successfully'. PHP_EOL;
+            //print_r($this->beneficiaryList);
+            print('Beneficiary Deleted Successfully'. PHP_EOL);
             $this->showPercentAmountSpent();
         }
         {
@@ -261,7 +292,16 @@ class User
     }
 
     public function showBeneficiaries(){
-        print_r($this->beneficiaryList);
+        //print_r($this->beneficiaryList);
+        $beneficiaries = $this->beneficiaryList;
+        foreach($beneficiaries as $key => $beneficiary){
+            print 'Index' . ':' . $key . PHP_EOL;
+            foreach($beneficiary as $key => $value){
+                print $key . ': '. $value  . PHP_EOL;
+            }
+            print "\n\e[1;33m============================================\e[0m\n";
+        }
+        $this->showPercentAmountSpent();
     }
 
     public function getTotalPersonalExpensePercent(){
@@ -290,12 +330,12 @@ class User
 
     public function showPercentAmountSpent(){
         $result = $this->getTotalPercentSpent();
-        echo "\n\e[0;32mTotal Percentage of Income spent is: \e[0m" . $result. '%' .PHP_EOL;
+        print "\n\e[0;32mTotal Percentage of Income spent is: \e[0m" . $result. '%' .PHP_EOL;
     }
 
     public function showPercentAmountSaved(){
         $percentSaved = (100 - $this->getTotalPercentSpent());
-        echo "\n\e[0;32mTotal Percentage of Income saved is: \e[0m" . $percentSaved . '%' . PHP_EOL;
+        print "\n\e[0;32mTotal Percentage of Income saved is: \e[0m" . $percentSaved . '%' . PHP_EOL;
     }
 
 }
